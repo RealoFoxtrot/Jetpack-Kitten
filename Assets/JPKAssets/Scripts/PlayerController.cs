@@ -6,16 +6,21 @@ public class PlayerController : MonoBehaviour {
 
     protected Rigidbody2D catBody;
     protected float horizontalMove;
+    protected float verticalMove;
     protected Vector2 forceDirection; // velocity
-    protected int jumpCount;
+    protected Vector2 aimDirection; //direction the cat is pointing, jump direction
+    protected float aimAngle;
+    protected Quaternion aimRotation;
+    protected Quaternion currentRotation;
 
-    protected float flipDirection;
     
 
     public bool canJump;
     public bool grounded = false;
+    protected int jumpCount;
 
     public float moveSpeed = 7f;
+    public float turnSpeed = 0.3f;
     public float flipForce = 7f;
     public float jumpForce = 7f;
     public int jumpMax = 1;
@@ -34,9 +39,13 @@ public class PlayerController : MonoBehaviour {
     void FixedUpdate()
     {
         horizontalMove = Input.GetAxis("Horizontal"); // x axis input
-        flipDirection = Input.GetAxis("Turn");
+        verticalMove = Input.GetAxis("Vertical"); // y axis input
+        float TurnV = Input.GetAxis("TurnV"); // right stick x axis
+        float TurnH = Input.GetAxis("TurnH"); // right stick y axis
 
-        forceDirection.x = horizontalMove * moveSpeed; // Setting x movement force
+        aimDirection = new Vector2(TurnH, TurnV);
+        
+
 
         if (jumpCount < jumpMax)
         {
@@ -47,16 +56,20 @@ public class PlayerController : MonoBehaviour {
             canJump = false;
         }
 
-        if (horizontalMove != 0) // applying force when input is activated
+        if (horizontalMove != 0 && grounded == true) // applying force when input is activated
         {
-            //catBody.AddRelativeForce(forceDirection);
+            forceDirection.x = horizontalMove * moveSpeed *-1; // Setting x movement force
             catBody.AddForce( forceDirection);
         }
-
-        if (flipDirection != 0)
-
+        if (grounded == false)
         {
-            catBody.AddTorque(flipDirection * flipForce);
+            if (verticalMove != 0 && horizontalMove != 0)
+
+            {
+                aimAngle = Mathf.Atan2(horizontalMove, verticalMove) * Mathf.Rad2Deg;
+                aimRotation = Quaternion.AngleAxis(aimAngle, Vector3.forward);
+                catBody.transform.rotation = Quaternion.Slerp(catBody.transform.rotation, aimRotation, turnSpeed * Time.time);
+            }
         }
 
         if (Input.GetButtonDown("Jump") && canJump == true)
@@ -65,21 +78,16 @@ public class PlayerController : MonoBehaviour {
             jumpCount += 1;
         }
 
+        if (GetComponentInChildren<GroundedScript>().grounded == true)
+        {
+            jumpCount = 0;
+            grounded = true;
+        }
+        else if (GetComponentInChildren<GroundedScript>().grounded == false)
+        {
+            grounded = false;
+        }
+
 	}
 
-    void OnCollisionStay2D ( Collision2D collision)
-    {
-        Collider2D collider = collision.collider;
-
-        if (collider.tag == "Floor")
-        {
-           // grounded = true;
-            jumpCount = 0;
-        }
-        else
-        {
-           // grounded = false;
-        }
-
-    }
 }
