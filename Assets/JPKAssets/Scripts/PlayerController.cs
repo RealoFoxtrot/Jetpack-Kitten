@@ -43,6 +43,7 @@ public class PlayerController : MonoBehaviour {
         float TurnV = Input.GetAxis("TurnV"); // right stick x axis
         float TurnH = Input.GetAxis("TurnH"); // right stick y axis
 
+
         aimDirection = new Vector2(TurnH, TurnV);
         
 
@@ -63,10 +64,10 @@ public class PlayerController : MonoBehaviour {
         }
         if (grounded == false)
         {
-            if (verticalMove != 0 && horizontalMove != 0)
+            if (TurnV != 0 && TurnH != 0)
 
             {
-                aimAngle = Mathf.Atan2(horizontalMove, verticalMove) * Mathf.Rad2Deg;
+                aimAngle = Mathf.Atan2(TurnH, TurnV) * Mathf.Rad2Deg;
                 aimRotation = Quaternion.AngleAxis(aimAngle, Vector3.forward);
                 catBody.transform.rotation = Quaternion.Slerp(catBody.transform.rotation, aimRotation, turnSpeed * Time.time);
             }
@@ -88,6 +89,10 @@ public class PlayerController : MonoBehaviour {
             grounded = false;
         }
 
+        if (Input.GetButtonDown("Cancel"))
+        {
+            Application.Quit();
+        }
 	}
 
 }
